@@ -25,11 +25,11 @@ function install_script_package()
     parse_flag '-i|--install' INSTALL_ENABLED || return 2
     parse_option '-g|--github-acct' PKG_GITHUB_ACCT validate_string "GitHub account can not be an empty string." || return 3
     parse_option '-p|--proj-dir' PKG_PROJ_DIR validate_directory "Path {} must be an existing directory." || return 4
-    set -- $PARAMS
     
-    local REPOSITORY="$1"
-    local PROJ_NAME="$2"
-    local PUBLIC_SCRIPT="$3"
+    local ARGS=`get_args "$PARAMS"`
+    local REPOSITORY="${ARGS[0]}"
+    local PROJ_NAME="${ARGS[1]}"
+    local PUBLIC_SCRIPT="${ARGS[2]}"
     
     if [ "$PUBLIC_SCRIPT" -o ! `which "$PUBLIC_SCRIPT"` ]
     then
@@ -78,10 +78,10 @@ function init_script_package()
     parse_option '-e|--script-ext' PKG_SCRIPT_EXT validate_string "Script extension can not be an empty string." || return 3
     parse_option '-p|--public-ext' PKG_PUBLIC_EXT validate_string "Public script extension can not be an empty string." || return 4
     parse_option '-b|--bin-dir' PKG_BIN_DIR validate_directory "Path {} must be an existing directory." || return 5
-    set -- $PARAMS
     
-    local INIT_DIR="$1"
-    local LIB_DIR="$2"
+    local ARGS=`get_args "$PARAMS"`
+    local INIT_DIR="${ARGS[0]}"
+    local LIB_DIR="${ARGS[1]}"
     
     echo "[ 1/3 ] - Transfering script package."
     transfer_directory "$SUDO_ENABLED" "$FORCE_ENABLED" "$INIT_DIR" "$LIB_DIR" || return 6
@@ -105,10 +105,10 @@ function init_script_package_access()
     local SUDO_ENABLED=''
         
     parse_flag '-s|--sudo' SUDO_ENABLED || return 1
-    set -- $PARAMS
     
-    local PKG_LIB_DIR="$1"
-    local PKG_SCRIPT_EXT="$2"
+    local ARGS=`get_args "$PARAMS"`
+    local PKG_LIB_DIR="${ARGS[0]}"
+    local PKG_SCRIPT_EXT="${ARGS[1]}"
     
     directory_access "$SUDO_ENABLED" "$PKG_LIB_DIR" 755 || return 2
     file_access "$SUDO_ENABLED" "$PKG_LIB_DIR" 644 || return 3
@@ -128,11 +128,11 @@ function link_public_scripts()
     local SUDO_ENABLED=''
         
     parse_flag '-s|--sudo' SUDO_ENABLED || return 1
-    set -- $PARAMS
     
-    local BASE_DIR="$1"
-    local PUBLIC_BIN_DIR="$2"
-    local PUBLIC_EXT="$3"
+    local ARGS=`get_args "$PARAMS"`
+    local BASE_DIR="${ARGS[0]}"
+    local PUBLIC_BIN_DIR="${ARGS[1]}"
+    local PUBLIC_EXT="${ARGS[2]}"
     
     for PUBLIC_SCRIPT in `find "$BASE_DIR" -name "*.$PUBLIC_EXT"` 
     do

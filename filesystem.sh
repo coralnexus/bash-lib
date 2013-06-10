@@ -15,10 +15,10 @@ function transfer_directory()
         
     parse_flag '-s|--sudo' SUDO_ENABLED || return 1
     parse_flag '-f|--force' FORCE_OVERWRITE || return 2
-    set -- $PARAMS
     
-    local ORIGIN_DIR="$1"
-    local DEST_DIR="$2"
+    local ARGS=`get_args "$PARAMS"`
+    local ORIGIN_DIR="${ARGS[0]}"
+    local DEST_DIR="${ARGS[1]}"
     
     # echo "PARAMS = $@"
     # echo "ORIGIN_DIR = $ORIGIN_DIR"
@@ -69,10 +69,10 @@ function directory_access()
     local SUDO_ENABLED=''
         
     parse_flag "-s|--sudo" SUDO_ENABLED || return 1
-    set -- $PARAMS
     
-    local BASE_DIR="$1"
-    local PERM="$2"
+    local ARGS=`get_args "$PARAMS"`
+    local BASE_DIR="${ARGS[0]}"
+    local PERM="${ARGS[1]}"
             
     if [ "$SUDO_ENABLED" ]
     then
@@ -95,10 +95,10 @@ function file_access()
     local SUDO_ENABLED=''
         
     parse_flag "-s|--sudo" SUDO_ENABLED || return 1
-    set -- $PARAMS
     
-    local BASE_DIR="$1"
-    local PERM="$2"
+    local ARGS=`get_args "$PARAMS"`
+    local BASE_DIR="${ARGS[0]}"
+    local PERM="${ARGS[1]}"
     
     if [ "$SUDO_ENABLED" ]
     then
@@ -122,11 +122,11 @@ function pattern_access()
     local SUDO_ENABLED=''
         
     parse_flag "-s|--sudo" SUDO_ENABLED || return 1
-    set -- $PARAMS
     
-    local BASE_DIR="$1"
-    local PATTERN="${2//\'/}"
-    local PERM="$3"
+    local ARGS=`get_args "$PARAMS"`
+    local BASE_DIR="${ARGS[0]}"
+    local PATTERN="${ARGS[1]//\'/}"
+    local PERM="${ARGS[2]}"
         
     if [ "$SUDO_ENABLED" ]
     then
