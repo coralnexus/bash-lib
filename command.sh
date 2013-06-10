@@ -2,10 +2,9 @@
 #
 # command.sh
 #
-
-
 #-------------------------------------------------------------------------------
-# Convert parameters into newline separated sections.
+# Convert parameters into newline separated sections and apply other 
+# normalizations.
 #
 # This way we can avoid problems with quote expansion when passing parameters
 # around.
@@ -18,13 +17,26 @@ function normalize_params()
     
     for PARAM in "$@"
     do
-        PARAMS="${PARAMS}${PARAM}"$'\n'
+        # Split single character flags
+        if [[ $PARAM =~ ^-([A-Za-z0-9]{2,})$ ]]
+        then
+            BLOB=${BASH_REMATCH[1]}
+            for ((i=0; i<${#BLOB}; i++)); do
+                PARAMS="${PARAMS}-${BLOB:$i:1}"$'\n'
+            done
+        # Split equal '=' assignments   
+        elif [[ $PARAM =~ ^(--?[A-Za-z0-9_-]+)\=(.+)$ ]]
+        then
+            PARAMS="${PARAMS}${BASH_REMATCH[1]}"$'\n'
+            PARAMS="${PARAMS}${BASH_REMATCH[2]}"$'\n'  
+        else       
+            PARAMS="${PARAMS}${PARAM}"$'\n'
+        fi
     done
     
     echo "$PARAMS"
     return 0    
 }
-
 
 #-------------------------------------------------------------------------------
 # Return whether or not parameters have a particular flag enabled.
@@ -77,7 +89,6 @@ function parse_flag()
     return 0
 }
 
-
 #-------------------------------------------------------------------------------
 # Return whether or not parameters have a particular option specified.
 #
@@ -105,27 +116,31 @@ function parse_option()
     local VALUE_FOUND=''
     local NEEDS_PROCESSING=''
     
-    local APPENDED_VALUES=''
-    
-    local TEMP_PARAM=''
-    local TEMP_VALUE=''
-    
     IFS='|'
     read -ra OPTION_ARRAY <<< "$OPTIONS"
     
     IFS=$'\n'
     for PARAM in $PARAMS  # $PARAMS is not a local variable
     do 
-        # echo "PARAM = $PARAM"
+        #echo "PARAM = $PARAM"
         if [ "$NEEDS_PROCESSING" ]
         then
-            # echo "OPTION FOUND - Retreiving Value"
+            #echo "OPTION FOUND - Retreiving Value"
+            if [[ $PARAM =~ ^- ]]
+            then
+                ERROR_MSG=`echo "Parameter [ $OPTIONS ] (empty): $ERROR_MSG"`
+                echo "$ERROR_MSG"
+                            
+                IFS="$IFS_ORIG"
+                return 1	
+            fi
+            
             if [ "$VALIDATOR" ]
             then
-                # echo "$VALIDATOR '$PARAM'"
+                #echo "$VALIDATOR '$PARAM'"
                 if ! $VALIDATOR "$PARAM"
                 then
-                    ERROR_MSG=`echo $ERROR_MSG | sed "s|{}|$PARAM|g"`
+                    ERROR_MSG=`echo "Parameter [ $OPTIONS ] ($PARAM): $ERROR_MSG"`
                     echo "$ERROR_MSG"
                     return 1
                 fi
@@ -136,61 +151,29 @@ function parse_option()
             continue
         fi
             
-        IFS='=' # See if we have an equal sign separating option from value
-        read -ra APPENDED_VALUES <<< "$PARAM"
-        IFS="$IFS_ORIG"
-           
-        PARAM="${APPENDED_VALUES[0]}"
-        TEMP_VALUE="${APPENDED_VALUES[1]}"
-            
-        # echo "MOD PARAM = $PARAM"
-        # echo "TEMP_VALUE = $TEMP_VALUE"
-            
         for OPTION in "${OPTION_ARRAY[@]}"
         do
-            # echo "OPTION  = $OPTION"
-                            
+            #echo "OPTION  = $OPTION"                            
             if [ "$PARAM" = "$OPTION" ]
             then
-            	OPTION_FOUND='1'
-            	
-                if [ "$TEMP_VALUE" ]
-                then
-                   if [ "$VALIDATOR" ]
-                    then
-                        # echo "$VALIDATOR '$TEMP_VALUE'"
-                        if ! $VALIDATOR "$TEMP_VALUE"
-                        then
-                            ERROR_MSG=`echo $ERROR_MSG | sed "s|{}|$TEMP_VALUE|g"`
-                            echo "$ERROR_MSG"
-                            
-                            IFS="$IFS_ORIG"
-                            return 1
-                        fi
-                    fi
-                    eval $VALUE="'$TEMP_VALUE'" # Notify parent script that option was found.
-                    VALUE_FOUND='1'
-                    NEEDS_PROCESSING='' 
-                else
-                   # echo "OPTION FOUND - Setting Flag"
-                   NEEDS_PROCESSING='1'
-                fi                
-                break                
+            	#echo "OPTION FOUND - Setting Flag"
+            	OPTION_FOUND='1'               
+                NEEDS_PROCESSING='1'
+                break
             fi
         done
         
-        if [ ! "$NEEDS_PROCESSING" -a ! "$TEMP_VALUE" ]
+        if [ ! "$NEEDS_PROCESSING" ]
         then
-           ALT_PARAMS="${ALT_PARAMS}${PARAM}"$'\n'
-           # echo "ALT_PARAMS = $ALT_PARAMS"
-           TEMP_VALUE=''  
+            ALT_PARAMS="${ALT_PARAMS}${PARAM}"$'\n'
+            #echo "ALT_PARAMS = $ALT_PARAMS"
         fi
     done
     
     # Check if we have a value.
     if [ "$OPTION_FOUND" -a ! "$VALUE_FOUND" ]
     then
-        ERROR_MSG=`echo $ERROR_MSG | sed "s|{}|(empty)|g"`
+        ERROR_MSG=`echo "Parameter [ $OPTIONS ] (empty): $ERROR_MSG"`
         echo "$ERROR_MSG"
                             
         IFS="$IFS_ORIG"
@@ -200,4 +183,32 @@ function parse_option()
     PARAMS=$ALT_PARAMS  # Reassign to calling function params.
     IFS="$IFS_ORIG"
     return 0
+}
+
+#-------------------------------------------------------------------------------
+# Returns all non dashed arguments from list of parameters.
+#
+# This should be run after all flags and options have been parsed.
+#
+# USAGE:> ARGS=`get_args "$PARAMS"`
+#
+function get_args()
+{
+    local ARGS=''
+    local IFS_ORIG="$IFS"
+    
+    IFS=$'\n'
+    for PARAM in $@
+    do
+        #echo "$PARAM"
+        # No options allowed
+        if [[ $PARAM =~ ^[^-] ]]
+        then
+        	ARGS="${ARGS}${PARAM}"$'\n'
+        fi
+    done
+    
+    echo "$ARGS"
+    IFS="$IFS_ORIG"
+    return 0    
 }
