@@ -2,11 +2,6 @@
 #
 # filesystem.sh
 #
-
-#-------------------------------------------------------------------------------
-# Shared functions
-
-
 #-------------------------------------------------------------------------------
 # Transfer one directory to another. (NON DESTRUCTIVE)
 #
@@ -63,7 +58,6 @@ function transfer_directory()
     return 0
 }
 
-
 #-------------------------------------------------------------------------------
 # Change permissions on all directories under a base directory.
 #
@@ -89,7 +83,6 @@ function directory_access()
         find "$BASE_DIR" -type d -exec chmod "$PERM" {} \; || return 2
     fi
 }
-
 
 #-------------------------------------------------------------------------------
 # Change permissions on all files under a base directory.
@@ -117,7 +110,6 @@ function file_access()
     fi
 }
 
-
 #-------------------------------------------------------------------------------
 # Change permissions on all files or directories matching a specified pattern 
 # under a base directory.
@@ -135,9 +127,7 @@ function pattern_access()
     local BASE_DIR="$1"
     local PATTERN="${2//\'/}"
     local PERM="$3"
-    
-    
-    
+        
     if [ "$SUDO_ENABLED" ]
     then
         echo "Adjusting permissions for all files or directories under $BASE_DIR matching $PATTERN to $PERM (as admin)."
