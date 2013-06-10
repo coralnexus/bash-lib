@@ -2,11 +2,6 @@
 #
 # script.sh
 #
-
-#-------------------------------------------------------------------------------
-# Shared functions
-
-
 #-------------------------------------------------------------------------------
 # Install a script package from a remote repository. 
 #
@@ -57,7 +52,6 @@ function install_script_package()
     fi	
 }
 
-
 #-------------------------------------------------------------------------------
 # Create symbolic links in a specified searchable bin directory for all public
 # scripts under a base directory.
@@ -99,7 +93,6 @@ function init_script_package()
     link_public_scripts "$SUDO_ENABLED" "$LIB_DIR" "$PKG_BIN_DIR" "$PKG_PUBLIC_EXT" || return 8
     return 0	
 }
-
     
 #-------------------------------------------------------------------------------
 # Initialize access settings for a script package.
@@ -122,7 +115,6 @@ function init_script_package_access()
     pattern_access "$SUDO_ENABLED" "$PKG_LIB_DIR" "'*.$PKG_SCRIPT_EXT'" 755 || return 4    
     return 0   	
 }
- 
     
 #-------------------------------------------------------------------------------
 # Create symbolic links in a specified searchable bin directory for all public
