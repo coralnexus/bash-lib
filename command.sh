@@ -194,7 +194,7 @@ function parse_option()
 #
 function get_args()
 {
-    local ARGS=''
+    local ARGS=()
     local IFS_ORIG="$IFS"
     
     IFS=$'\n'
@@ -204,7 +204,7 @@ function get_args()
         # No options allowed
         if [[ $PARAM =~ ^[^-] ]]
         then
-        	ARGS="${ARGS}${PARAM}"$'\n'
+        	ARGS=("${ARGS[@]}" "$PARAM")
         fi
     done
     
