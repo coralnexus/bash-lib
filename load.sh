@@ -37,6 +37,15 @@ then
 	source "$COMMON_COMMAND"
 fi
 
+# Load os utilities.
+COMMON_OS="$SHELL_LIB_DIR/os.sh"
+
+if [ -f "$COMMON_OS" ]
+then
+    source "$COMMON_OS"
+    os_info
+fi
+
 # Load file system utilities.
 COMMON_FILESYSTEM="$SHELL_LIB_DIR/filesystem.sh"
 
