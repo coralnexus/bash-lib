@@ -15,11 +15,11 @@ function os_info() {
 
     #---
 
-    if [ "{$OS}" == "windowsnt" ]
+    if [ "${OS}" == "windowsnt" ]
     then
         OS=windows
     
-    elif [ "{$OS}" == "darwin" ]
+    elif [ "${OS}" == "darwin" ]
     then
         OS=mac
     else
